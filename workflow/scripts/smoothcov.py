@@ -16,19 +16,9 @@ from pathlib import Path
 import numpy as np
 import gzip
 
-def parse_args():
-    parser = argparse.ArgumentParser(description='Smooth coverage data from mosdepth output for Circos plots')
-    parser.add_argument('input_file', help='Input mosdepth coverage file (can be gzipped)')
-    parser.add_argument('output_file', help='Output file for smoothed data')
-    parser.add_argument('--bin-size', type=int, default=1000000,
-                        help='Bin size in bp (default: 1000000)')
-    parser.add_argument('--chunk-size', type=int, default=500000,
-                        help='Number of lines to process at once (default: 500000)')
-    parser.add_argument('--spike-threshold', type=int, default=100,
-                        help='Maximum allowed coverage value before filtering (default: 100X)')
-    parser.add_argument('--smooth-window', type=int, default=3,
-                        help='Window size (in bins) for smoothing (default: 3)')
-    return parser.parse_args()
+# Redirect output to Snakemake logs
+sys.stderr=open(snakemake.log[0], "a+")
+sys.stdout=open(snakemake.log[0], "a+")
 
 # Improved natural sort key function
 def natural_sort_key(key):
@@ -116,18 +106,23 @@ def open_file(filename):
         return open(filename, 'r')
 
 def main():
-    args = parse_args()
-    bin_size = args.bin_size
-    spike_threshold = args.spike_threshold
-    smooth_window = args.smooth_window
+    # Snakemake objects
+    input_file = snakemake.input.bed
+    output_file = snakemake.output[0]
+
+    # Get parameters from snakemake.params
+    bin_size = snakemake.params.bin
+    chunk_size = snakemake.params.chunk
+    spike_threshold = snakemake.params.spike
+    smooth_window = snakemake.params.smooth
 
     # Use defaultdict to collect bin data
     bin_data = defaultdict(lambda: {'coverage_sum': 0, 'count': 0})
 
-    print(f"Processing {args.input_file} with bin size {bin_size}bp...", file=sys.stderr)
+    print(f"Processing {input_file} with bin size {bin_size}bp...")
     line_count = 0
 
-    with open_file(args.input_file) as f:
+    with open_file(input_file) as f:
         reader = csv.reader(f, delimiter='\t')
 
         for line in reader:
@@ -153,18 +148,18 @@ def main():
                 bin_entry['coverage_sum'] += coverage
                 bin_entry['count'] += 1
 
-            if line_count % args.chunk_size == 0:
-                print(f"Processed {line_count:,} lines...", file=sys.stderr)
+            if line_count % chunk_size == 0:
+                print(f"Processed {line_count:,} lines...")
 
-    print(f"Processed total of {line_count:,} lines.", file=sys.stderr)
+    print(f"Processed total of {line_count:,} lines.")
     
     # Apply smoothing to the binned data
-    print(f"Smoothing data with window size {smooth_window} bins...", file=sys.stderr)
+    print(f"Smoothing data with window size {smooth_window} bins...")
     smoothed_data = smooth_bins(bin_data, smooth_window)
     
-    print("Writing output...", file=sys.stderr)
+    print("Writing output...")
 
-    with open(args.output_file, 'w') as out:
+    with open(output_file, 'w') as out:
         # Write header
         out.write("chrom,start,end,coverage,positions_count\n")
 
@@ -181,7 +176,7 @@ def main():
             # Write bin data with smoothed coverage
             out.write(f"{chrom},{bin_start+1},{bin_end},{bin_info['smoothed_coverage']:.2f},{bin_info['count']}\n")
 
-    print(f"Done! Smoothed coverage data written to {args.output_file}", file=sys.stderr)
+    print(f"Done! Smoothed coverage data written to {output_file}")
 
 if __name__ == "__main__":
     main()

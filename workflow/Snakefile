@@ -562,22 +562,16 @@ rule smoothcov:
     benchmark:
         "logs/smoothcov/{patient}/{sampleid}.bmk"
     resources:
-        mem_mb=get_resource("smoothcov", "mem_mb")
-        runtime=get_resource("smoothcov", "runtime")
+        mem_mb=get_resource("smoothcov", "mem_mb"),
+        runtime=get_resource("smoothcov", "runtime"),
         slurm_partition=get_resource("smoothcov", "partition")
     params:
-        bin=config["smoothcov"]["bin"]
-        chunk=config["smoothcov"]["chunk"]
-        spike=config["smoothcov"]["spike"]
+        bin=config["smoothcov"]["bin"],
+        chunk=config["smoothcov"]["chunk"],
+        spike=config["smoothcov"]["spike"],
         smooth=config["smoothcov"]["smooth"]
     conda:
         "envs/smoothcov.yaml"
     shell:"""
-        python scripts/smoothcov.py
-            {input.bed} \
-            {output} \
-            --bin-size {params.bin} \
-            --chunk-size {params.chunk} \
-            --spike-threshold {params.spike} \
-            --smooth-window {params.smooth} \
+        scripts/smoothcov.py
     """

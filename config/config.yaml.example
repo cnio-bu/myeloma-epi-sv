@@ -22,6 +22,12 @@ basecallers:
   dorado:
     bin: "dorado"
 
+smoothcov:
+    bin: 1000000
+    chunk: 500000
+    spike: 100
+    smooth: 3
+
 resources:
     default:
         partition: main
@@ -47,7 +53,3 @@ resources:
         threads: 8
         mem_mb: 18000
         runtime: 30
-        bin: 1000000
-        chunk: 500000
-        spike: 100
-        smooth: 3
