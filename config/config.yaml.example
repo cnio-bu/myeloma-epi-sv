@@ -1,27 +1,52 @@
-ref: "/path/to/ref.fa.gz"
+# Reference files
+ref: "/path/to/reference/genome.fa.gz"
+ann: "/path/to/annotation/gencode.v45.gtf.gz"
+regions: "/path/to/regions/targets.bed"
+highlights: "/path/to/highlights/promoters.bed"
+encode_blacklist: "/path/to/blacklist/encode_blacklist.bed.gz"
+severus_vntrs: "/path/to/vntrs/human_trf.bed"
 
-clair3_model: "/path/to/r1041_e82_400bps_sup_v420"
+# Tool paths
+dorado_bin: "/path/to/dorado/bin/dorado"
+clair3_model: "/path/to/clair3/r1041_e82_400bps_sup_v420"
 
+# Analysis parameters
+minq: 9
+run_methylartist: True
+
+# Samples hierarchical structure
 samples:
-    sample1:
-        pod5: "/path/to/pod5s"
-    sample2:
-        pod5: "/path/to/pod5s2"
+  PATIENT1:
+    PATIENT1_normal:
+      pod5: "/path/to/patient1/normal/pod5/"
+      colour: "#D40000"
+      normal: True
+    PATIENT1_tumor:
+      pod5: "/path/to/patient1/tumor/pod5/"
+      colour: "#3366CC"
+  PATIENT2:
+    PATIENT2_normal:
+      pod5: "/path/to/patient2/normal/pod5/"
+      colour: "#D40000"
+      normal: True
+    PATIENT2_before_treatment:
+      pod5: "/path/to/patient2/before_treatment/pod5/"
+      colour: "#3366CC"
+    PATIENT2_after_treatment:
+      pod5: "/path/to/patient2/after_treatment/pod5/"
+      colour: "#009E73"
+  CELL_LINES:
+    wild_type:
+      pod5: "/path/to/celllines/wildtype/pod5/"
+      colour: "#359B73"
+    knockout:
+      pod5: "/path/to/celllines/knockout/pod5/"
+      colour: "#2271B2"
+    resistant:
+      pod5: "/path/to/celllines/resistant/pod5/"
+      colour: "#3DB7E9"
 
-samples:
-    subject01:
-        timepoint01:
-            pod5: "/path/to/pod5s"
-        timepoint02:
-            pod5: "/path/to/pod5s"
-    subject02:
-        sample01:
-            pod5: "/path/to/pod5s"
-
-basecallers:
-  dorado:
-    bin: "dorado"
-
+# Resource specifications for different steps
 smoothcov:
     bin: 1000000
     chunk: 500000
@@ -29,27 +54,28 @@ smoothcov:
     smooth: 3
 
 resources:
-    default:
-        partition: main
-        threads: 1
-        mem_mb: 4000
-        runtime: 30
-        slurm_extra: ""
-        params_extra: ""
-    basecall_dorado:
-        partition: gpu
-        threads: 8
-        mem_mb: 32000
-        runtime: 1440
-        slurm_extra: "--gres=gpu:1"
-        params_model: "hac,5mCG_5hmCG"
-    clair3:
-        runtime: 420
-        mem_mb: 64000
-        threads: 24
-        params_extra: "/path/to/clair3"
-    smoothcov:
-        partition: short
-        threads: 8
-        mem_mb: 18000
-        runtime: 30
+  default:
+    partition: main
+    threads: 1
+    mem_mb: 4000
+    runtime: 30
+    slurm_extra: ""
+    params_extra: ""
+  basecall_dorado:
+    partition: gpu
+    threads: 24
+    mem_mb: 128000
+    runtime: 4320
+    slurm_extra: "--gres=gpu:1"
+    params_model: "sup,5mCG_5hmCG"
+    params_extra: "--recursive"
+  clair3:
+    runtime: 420
+    mem_mb: 64000
+    threads: 24
+    params_extra: "/path/to/clair3"
+  moothcov:
+    partition: short
+    threads: 8
+    mem_mb: 18000
+    runtime: 30

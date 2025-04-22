@@ -1,0 +1,45 @@
+# Reference files
+ref: "resources/ref.fasta.gz"
+ann: "resources/annotations.gtf.gz"
+regions: "resources/regions.bed"
+highlights: "resources/highlights.bed"
+encode_blacklist: "resources/encode_blacklist.bed"
+severus_vntrs: "resources/severus_vntrs.bed"
+
+# Tool paths
+dorado_bin: "resources/dorado/bin/dorado"
+modkit_bin: "resources/modkit/modkit"
+clair3_model: "resources/clair3_model"
+
+# Analysis parameters
+minq: 9
+run_methylartist: True
+
+# Samples hierarchical structure
+samples:
+  sample1:
+    sample1_tumor:
+      pod5: "resources/reads.pod5"
+      colour: "#D40000"
+
+# Resource specifications for different steps
+resources:
+  default:
+    partition: main
+    threads: 2
+    mem_mb: 8000
+    runtime: 30
+    slurm_extra: ""
+    params_extra: ""
+  basecall_dorado:
+    partition: gpu
+    threads: 24
+    mem_mb: 128000
+    runtime: 4320
+    slurm_extra: "--gres=gpu:A100:1"
+    params_model: "resources/dna_r9.4.1_e8_sup@v3.3"
+    params_extra: "--recursive --modified-bases 5mCG"
+  clair3:
+    runtime: 420
+    mem_mb: 64000
+    threads: 24

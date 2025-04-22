@@ -56,7 +56,7 @@ rule basecall_dorado:
     benchmark:
         "logs/basecall_dorado/{patient}/{sampleid}.bmk"
     params:
-        bin=config["basecallers"]["dorado"]["bin"],
+        bin=config["dorado_bin"],
         model=get_resource("basecall_dorado", "params_model"),
         extra=get_resource("basecall_dorado", "params_extra"),
     threads: get_resource("basecall_dorado", "threads")
@@ -81,7 +81,7 @@ rule summary_dorado:
     benchmark:
         "logs/summary_dorado/{sampleid}.bmk"
     params:
-        bin=config["basecallers"]["dorado"]["bin"],
+        bin=config["dorado_bin"],
     threads: get_resource("summary_dorado", "threads")
     resources:
         mem_mb=get_resource("summary_dorado", "mem_mb"),
@@ -118,7 +118,7 @@ rule pycoqc:
 
 rule qsfilter:
     input:
-        "results/basecall/{sampleid}.bam",
+        "results/basecall_dorado/{sampleid}.bam",
     output:
         "results/qsfilter/{sampleid}.bam",
     log:
@@ -186,13 +186,13 @@ rule primary:
         samtools index {output.bam}
     """
 
-def get_methylartist_scoredist_input(wc):
+def get_bams(wc):
         for sampleid in config["samples"][wc.patient]:
             yield f"results/primary/{wc.patient}/{sampleid}.bam"
 
 rule methylartist_scoredist:
     input:
-        bams=get_methylartist_scoredist_input,
+        bams=get_bams,
         ref="results/decompress_ref/ref.fa",
     output:
         "results/methylartist_scoredist/{patient}.svg",
@@ -205,7 +205,7 @@ rule methylartist_scoredist:
         runtime=get_resource("methylartist_scoredist", "runtime"),
         slurm_partition=get_resource("methylartist_scoredist", "partition"),
     params:
-        bams=lambda wc: ",".join(get_methylartist_scoredist_input(wc))
+        bams=lambda wc: ",".join(get_bams(wc))
     conda:
         "envs/methylartist.yaml"
     shell:
@@ -268,80 +268,23 @@ rule modkit_pileup:
         "logs/modkit/pileup/{patient}/{sampleid}.log",
     benchmark:
         "logs/modkit/pileup/{patient}/{sampleid}.bmk"
+    conda: "envs/modkit.yaml"
     threads: get_resource("modkit_pileup", "threads"),
     resources:
         mem_mb=get_resource("modkit_pileup", "mem_mb"),
         runtime=get_resource("modkit_pileup", "runtime"),
         slurm_partition=get_resource("modkit_pileup", "partition"),
-    params:
-        bin=config["modkit"]["bin"],
     shell:"""
-        {params.bin} pileup {input.bam} {output.bed} \
+        modkit pileup {input.bam} {output.bed} \
           --threads {threads} \
           --log-filepath {log}
-    """
-
-rule modkit_tabix:
-    input:
-        bed="results/modkit/pileup/{patient}/{sampleid}.bed",
-    output:
-        bgzip="results/modkit/pileup/{patient}/{sampleid}.bed.gz",
-        tabix="results/modkit/pileup/{patient}/{sampleid}.bed.gz.tbi",
-    log:
-        "logs/modkit/tabix/{patient}/{sampleid}.log",
-    benchmark:
-        "logs/modkit/tabix/{patient}/{sampleid}.bmk"
-    threads: get_resource("modkit_tabix", "threads"),
-    resources:
-        mem_mb=get_resource("modkit_tabix", "mem_mb"),
-        runtime=get_resource("modkit_tabix", "runtime"),
-        slurm_partition=get_resource("modkit_tabix", "partition"),
-    conda:
-        "envs/samtools.yaml"
-    shell:"""
-        bgzip {input.bed} &> {log}
-        tabix {output.bgzip} &> {log}
-    """
-
-def get_modkit_dmr_input(wc):
-    for sampleid in config["samples"][wc.patient]:
-        yield f"results/modkit/pileup/{wc.patient}/{sampleid}.bed.gz"
-
-rule modkit_dmr:
-    input:
-        bgzips=get_modkit_dmr_input,
-        ref="results/decompress_ref/ref.fa",
-        regions=config["regions"],
-    output:
-        directory("results/modkit/dmr/{patient}/"),
-    log:
-        "logs/modkit/dmr/{patient}.log",
-    benchmark:
-        "logs/modkit/dmr/{patient}.bmk"
-    threads: get_resource("modkit_dmr", "threads"),
-    resources:
-        mem_mb=get_resource("modkit_dmr", "mem_mb"),
-        runtime=get_resource("modkit_dmr", "runtime"),
-        slurm_partition=get_resource("modkit_dmr", "partition"),
-    params:
-        bin=config["modkit"]["bin"],
-        inargs=lambda wc: " ".join([f"-s {f} " + f.split("/")[-1].split(os.extsep,1)[0] for f in get_modkit_dmr_input(wc)])
-    shell:"""
-    {params.bin} dmr multi \
-        {params.inargs} \
-        -o {output} \
-        -r {input.regions} \
-        --ref {input.ref} \
-        --base C \
-        -t {threads} \
-        --log-filepath {log}
     """
 
 rule decompress_ref:
     input:
         ref=config["ref"],
     output:
-        "results/decompress_ref/ref.fa"
+        temp("results/decompress_ref/ref.fa")
     log:
         "logs/decompress_ref/ref.out",
     shell:"""
@@ -371,7 +314,7 @@ def get_time_retry(wc, attempt):
 
 rule methylartist:
     input:
-        bams=lambda wc: [f"results/primary/{{patient}}/{sampleid}.bam" for sampleid in config["samples"][wc.patient]],
+        bams=get_bams,
         ann=config["ann"],
         ref="results/decompress_ref/ref.fa",
         hl=config["highlights"],
@@ -459,6 +402,7 @@ rule clair3:
           --model_path="{params.model}" \
           --output=$(dirname {output.full}) \
           --enable_phasing \
+          --include_all_ctgs \
           --use_whatshap_for_intermediate_phasing \
           --use_whatshap_for_final_output_phasing \
           --use_whatshap_for_final_output_haplotagging &> {log}
