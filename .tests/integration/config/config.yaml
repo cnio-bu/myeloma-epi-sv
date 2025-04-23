@@ -23,6 +23,13 @@ samples:
       colour: "#D40000"
 
 # Resource specifications for different steps
+smoothcov:
+    bin: 1000000
+    chunk: 500000
+    spike: 100
+    smooth: 3
+
+# Resource specifications for different steps
 resources:
   default:
     partition: main

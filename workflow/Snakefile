@@ -32,6 +32,7 @@ def input_main(wc):
             o.append(f"results/modkit/pileup/{patient}/{sampleid}.bed")
             o.append(f"results/sniffles/{patient}/{sampleid}.vcf.gz")
             o.append(f"results/severus/{patient}/{sampleid}")
+            o.append(f"results/smoothcov/{patient}/{sampleid}.csv")
             if normal and normal != sampleid:
                 o.append(f"results/clairs/{patient}/{sampleid}/output.vcf.gz")
     if config["run_methylartist"]:
@@ -516,6 +517,5 @@ rule smoothcov:
         smooth=config["smoothcov"]["smooth"]
     conda:
         "envs/smoothcov.yaml"
-    shell:"""
-        scripts/smoothcov.py
-    """
+    script:
+        "scripts/smoothcov.py"

@@ -74,7 +74,7 @@ resources:
     mem_mb: 64000
     threads: 24
     params_extra: "/path/to/clair3"
-  moothcov:
+  smoothcov:
     partition: short
     threads: 8
     mem_mb: 18000
