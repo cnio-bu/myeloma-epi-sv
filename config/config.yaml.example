@@ -47,6 +47,7 @@ samples:
       colour: "#3DB7E9"
 
 # Resource specifications for different steps
+
 smoothtools:
     bin: 1000000
     chunk: 500000

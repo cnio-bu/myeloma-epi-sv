@@ -34,6 +34,7 @@ def input_main(wc):
             o.append(f"results/severus/{patient}/{sampleid}")
             o.append(f"results/smoothcov/{patient}/{sampleid}.csv")
             o.append(f"results/smoothmods/{patient}/{sampleid}.csv")
+
             if normal and normal != sampleid:
                 o.append(f"results/clairs/{patient}/{sampleid}/output.vcf.gz")
     if config["run_methylartist"]:
@@ -286,11 +287,14 @@ rule decompress_ref:
     input:
         ref=config["ref"],
     output:
-        temp("results/decompress_ref/ref.fa")
+        ref=temp("results/decompress_ref/ref.fa"),
+        idx=temp("results/decompress_ref/ref.fa.fai")
     log:
         "logs/decompress_ref/ref.out",
+    conda: "envs/samtools.yaml"
     shell:"""
-        gunzip -c {input.ref} > {output} 2> {log}
+        gunzip -c {input.ref} > {output.ref} 2> {log}
+        samtools faidx {output.ref} 2>> {log}
     """
 
 def get_region(wc):
@@ -377,6 +381,7 @@ rule clair3:
     input:
         bam="results/primary/{patient}/{sampleid}.bam",
         ref="results/decompress_ref/ref.fa",
+        idx="results/decompress_ref/ref.fa.fai",
     output:
         full="results/clair3/{patient}/{sampleid}/full_alignment.vcf.gz",
         merge="results/clair3/{patient}/{sampleid}/merge_output.vcf.gz",
