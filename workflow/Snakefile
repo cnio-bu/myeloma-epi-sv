@@ -33,6 +33,7 @@ def input_main(wc):
             o.append(f"results/sniffles/{patient}/{sampleid}.vcf.gz")
             o.append(f"results/severus/{patient}/{sampleid}")
             o.append(f"results/smoothcov/{patient}/{sampleid}.csv")
+            o.append(f"results/smoothmods/{patient}/{sampleid}.csv")
             if normal and normal != sampleid:
                 o.append(f"results/clairs/{patient}/{sampleid}/output.vcf.gz")
     if config["run_methylartist"]:
@@ -511,11 +512,33 @@ rule smoothcov:
         runtime=get_resource("smoothcov", "runtime"),
         slurm_partition=get_resource("smoothcov", "partition")
     params:
-        bin=config["smoothcov"]["bin"],
-        chunk=config["smoothcov"]["chunk"],
-        spike=config["smoothcov"]["spike"],
-        smooth=config["smoothcov"]["smooth"]
+        bin=config["smoothtools"]["bin"],
+        chunk=config["smoothtools"]["chunk"],
+        spike=config["smoothtools"]["spike"],
+        smooth=config["smoothtools"]["smooth"]
     conda:
-        "envs/smoothcov.yaml"
+        "envs/smoothtools.yaml"
     script:
         "scripts/smoothcov.py"
+
+
+rule smoothmods:
+    input:
+        bed="results/modkit/pileup/{patient}/{sampleid}.bed"
+    output:
+        "results/smoothmods/{patient}/{sampleid}.csv"
+    log:
+        "logs/smoothmods/{patient}/{sampleid}.log"
+    benchmark:
+        "logs/smoothmods/{patient}/{sampleid}.bmk"
+    resources:
+        mem_mb=get_resource("smoothmods", "mem_mb"),
+        runtime=get_resource("smoothmods", "runtime"),
+        slurm_partition=get_resource("smoothmods", "partition")
+    params:
+        bin=config["smoothtools"]["bin"],
+        chunk=config["smoothtools"]["chunk"],
+    conda:
+        "envs/smoothtools.yaml"
+    script:
+        "scripts/smoothmods.py"

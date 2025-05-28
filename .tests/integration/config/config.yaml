@@ -23,7 +23,7 @@ samples:
       colour: "#D40000"
 
 # Resource specifications for different steps
-smoothcov:
+smoothtools:
     bin: 1000000
     chunk: 500000
     spike: 100
@@ -50,3 +50,13 @@ resources:
     runtime: 420
     mem_mb: 64000
     threads: 24
+  smoothcov:
+    partition: short
+    threads: 8
+    mem_mb: 18000
+    runtime: 30
+  smoothmods:
+    partition: short
+    threads: 8
+    mem_mb: 18000
+    runtime: 30
