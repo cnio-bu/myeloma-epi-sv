@@ -22,7 +22,6 @@ samples:
       pod5: "resources/reads.pod5"
       colour: "#D40000"
 
-# Resource specifications for different steps
 smoothtools:
     bin: 1000000
     chunk: 500000
