@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-
-# /// script
-# dependencies = [
-#    "numpy>=1.0.0",
-# ]
-# ///
-
 import argparse
 import sys
 import csv
