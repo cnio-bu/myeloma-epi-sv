@@ -5,6 +5,7 @@ regions: "/path/to/regions/targets.bed"
 highlights: "/path/to/highlights/promoters.bed"
 encode_blacklist: "/path/to/blacklist/encode_blacklist.bed.gz"
 severus_vntrs: "/path/to/vntrs/human_trf.bed"
+chrom_info: "/path/to/chrom_info/hg38_chromosome_general.csv"
 
 # Tool paths
 dorado_bin: "/path/to/dorado/bin/dorado"
@@ -79,6 +80,11 @@ resources:
     mem_mb: 18000
     runtime: 30
   smoothmods:
+    partition: short
+    threads: 8
+    mem_mb: 18000
+    runtime: 30
+  binsnvs:
     partition: short
     threads: 8
     mem_mb: 18000

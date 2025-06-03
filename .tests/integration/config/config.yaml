@@ -5,6 +5,7 @@ regions: "resources/regions.bed"
 highlights: "resources/highlights.bed"
 encode_blacklist: "resources/encode_blacklist.bed"
 severus_vntrs: "resources/severus_vntrs.bed"
+chrom_info: "resources/hg38_chromosome_general.csv"
 
 # Tool paths
 dorado_bin: "resources/dorado/bin/dorado"
@@ -54,6 +55,11 @@ resources:
     mem_mb: 18000
     runtime: 30
   smoothmods:
+    partition: short
+    threads: 8
+    mem_mb: 18000
+    runtime: 30
+  binsnvs:
     partition: short
     threads: 8
     mem_mb: 18000

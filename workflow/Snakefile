@@ -34,6 +34,7 @@ def input_main(wc):
             o.append(f"results/severus/{patient}/{sampleid}")
             o.append(f"results/smoothcov/{patient}/{sampleid}.csv")
             o.append(f"results/smoothmods/{patient}/{sampleid}.csv")
+            o.append(f"results/binsnvs/{patient}/{sampleid}.csv")
 
             if normal and normal != sampleid:
                 o.append(f"results/clairs/{patient}/{sampleid}/output.vcf.gz")
@@ -547,3 +548,25 @@ rule smoothmods:
         "envs/smoothtools.yaml"
     script:
         "scripts/smoothmods.py"
+
+
+rule binsnvs:
+    input:
+        vcf="results/clair3/{patient}/{sampleid}/phased_merge_output.vcf.gz"
+    output:
+        "results/binsnvs/{patient}/{sampleid}.csv"
+    log:
+        "logs/binsnvs/{patient}/{sampleid}.log"
+    benchmark:
+        "logs/binsnvs/{patient}/{sampleid}.bmk"
+    resources:
+        mem_mb=get_resource("binsnvs", "mem_mb"),
+        runtime=get_resource("binsnvs", "runtime"),
+        slurm_partition=get_resource("binsnvs", "partition")
+    params:
+        bin=config["smoothtools"]["bin"],
+        chrom_info=config["chrom_info"]
+    conda:
+        "envs/smoothtools.yaml"
+    script:
+        "scripts/binsnvs.py"
