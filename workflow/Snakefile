@@ -43,6 +43,8 @@ def input_main(wc):
             for label in regions:
                 for modtype in config["methylartist"]["mods"]:
                     o.append(f"results/methylartist/{patient}/{label}.{modtype}.png")
+                for sampleid in config["samples"][patient]:
+                    o.append(f"results/methylartist_phased/{patient}/{label}.{sampleid}.png")
     return o
 
 
@@ -352,6 +354,44 @@ rule methylartist:
                 --mods {wildcards.modtype} \
                 --labelgenes \
                 -r {input.ref} \
+                -o {output.png} \
+                --highlight_bed {input.hl} \
+                -i "{params.reg}" \
+                --panelratios 1,5,1,3,3 \
+                > {log.o} 2> {log.e}
+    """
+
+rule methylartist_phased:
+    input:
+        bam="results/clair3/{patient}/{sampleid}/phased_output.bam",
+        ann=config["ann"],
+        ref="results/decompress_ref/ref.fa",
+        hl=config["highlights"],
+    output:
+        png="results/methylartist_phased/{patient}/{label}.{sampleid}.png"
+    log:
+        o="logs/methylartist/{patient}/{label}.{sampleid}.out",
+        e="logs/methylartist/{patient}/{label}.{sampleid}.err",
+    benchmark:
+        "logs/methylartist/{patient}/{label}.{sampleid}.bmk"
+    params:
+        reg=get_region,
+    conda: "envs/methylartist.yaml"
+    threads: get_resource("methylartist", "threads"),
+    resources:
+        mem_mb=get_resource("methylartist", "mem_mb"),
+        runtime=get_time_retry,
+        slurm_partition=get_resource("methylartists", "partition"),
+    retries: 4
+    shell:"""
+        methylartist locus \
+                -b {input.bam} \
+                -g {input.ann} \
+                -p {threads} \
+                -n CG \
+                --labelgenes \
+                -r {input.ref} \
+                --phased \
                 -o {output.png} \
                 --highlight_bed {input.hl} \
                 -i "{params.reg}" \
