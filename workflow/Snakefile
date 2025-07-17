@@ -380,7 +380,7 @@ rule methylartist_phased:
     threads: get_resource("methylartist", "threads"),
     resources:
         mem_mb=get_resource("methylartist", "mem_mb"),
-        runtime=mem_mb=get_resource("methylartist", "runtime"),
+        runtime=get_resource("methylartist", "runtime"),
         slurm_partition=get_resource("methylartist", "partition"),
     shell:"""
         methylartist locus \
