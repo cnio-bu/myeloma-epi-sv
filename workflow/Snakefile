@@ -343,7 +343,7 @@ rule methylartist:
     resources:
         mem_mb=get_resource("methylartist", "mem_mb"),
         runtime=get_time_retry,
-        slurm_partition=get_resource("methylartists", "partition"),
+        slurm_partition=get_resource("methylartist", "partition"),
     retries: 4
     shell:"""
         methylartist locus \
@@ -380,9 +380,8 @@ rule methylartist_phased:
     threads: get_resource("methylartist", "threads"),
     resources:
         mem_mb=get_resource("methylartist", "mem_mb"),
-        runtime=get_time_retry,
-        slurm_partition=get_resource("methylartists", "partition"),
-    retries: 4
+        runtime=mem_mb=get_resource("methylartist", "runtime"),
+        slurm_partition=get_resource("methylartist", "partition"),
     shell:"""
         methylartist locus \
                 -b {input.bam} \
