@@ -30,6 +30,7 @@ def input_main(wc):
             o.append(f"results/primary/{patient}/{sampleid}.cov")
             o.append(f"results/mosdepth/{patient}/{sampleid}.mosdepth.global.dist.txt")
             o.append(f"results/modkit/pileup/{patient}/{sampleid}.bed")
+            o.append(f"results/modkit/entropy/{patient}/{sampleid}/regions.bed")
             o.append(f"results/sniffles/{patient}/{sampleid}.vcf.gz")
             o.append(f"results/severus/{patient}/{sampleid}")
             o.append(f"results/smoothcov/{patient}/{sampleid}.csv")
@@ -283,6 +284,37 @@ rule modkit_pileup:
         slurm_partition=get_resource("modkit_pileup", "partition"),
     shell:"""
         modkit pileup {input.bam} {output.bed} \
+          --threads {threads} \
+          --log-filepath {log}
+    """
+
+rule modkit_entropy:
+    input:
+        bam="results/primary/{patient}/{sampleid}.bam",
+        bai="results/primary/{patient}/{sampleid}.bam.bai",
+        ref="results/decompress_ref/ref.fa",
+        regions=config["regions"],
+    output:
+        regions="results/modkit/entropy/{patient}/{sampleid}/regions.bed",
+        windows="results/modkit/entropy/{patient}/{sampleid}/windows.bedgraph",
+    log:
+        "logs/modkit/entropy/{patient}/{sampleid}.log",
+    benchmark:
+        "logs/modkit/entropy/{patient}/{sampleid}.bmk"
+    conda: "envs/modkit.yaml"
+    threads: get_resource("modkit_entropy", "threads"),
+    resources:
+        mem_mb=get_resource("modkit_entropy", "mem_mb"),
+        runtime=get_resource("modkit_entropy", "runtime"),
+        slurm_partition=get_resource("modkit_entropy", "partition"),
+    params:
+        outdir=lambda wildcards, output: os.path.dirname(output.regions)
+    shell:"""
+        modkit entropy -s {input.bam} \
+          -o {params.outdir} \
+          --ref {input.ref} \
+          --regions {input.regions} \
+          --cpg \
           --threads {threads} \
           --log-filepath {log}
     """
