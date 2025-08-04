@@ -288,12 +288,23 @@ rule modkit_pileup:
           --log-filepath {log}
     """
 
+rule regulatory_noname:
+    input:
+        bed=config["regulatory"],
+    output:
+        bed="results/regulatory_noname/regions.bed"
+    log:
+        "logs/regulatory_noname/regions.log"
+    shell:"""
+        cut -f1-3 {input.bed} > {output.bed} 2> {log}
+    """
+
 rule modkit_entropy:
     input:
         bam="results/primary/{patient}/{sampleid}.bam",
         bai="results/primary/{patient}/{sampleid}.bam.bai",
         ref="results/decompress_ref/ref.fa",
-        regions=config["regions"],
+        regions=config["regulatory"],
     output:
         regions="results/modkit/entropy/{patient}/{sampleid}/regions.bed",
         windows="results/modkit/entropy/{patient}/{sampleid}/windows.bedgraph",
@@ -315,8 +326,10 @@ rule modkit_entropy:
           --ref {input.ref} \
           --regions {input.regions} \
           --cpg \
+          --window-size 100 \
           --threads {threads} \
-          --log-filepath {log}
+          --log-filepath {log} \
+          --verbose-logging
     """
 
 rule decompress_ref:
@@ -359,7 +372,7 @@ rule methylartist:
         bams=get_bams,
         ann=config["ann"],
         ref="results/decompress_ref/ref.fa",
-        hl=config["highlights"],
+        hl="results/regulatory_noname/regions.bed",
     output:
         png="results/methylartist/{patient}/{label}.{modtype}.png"
     log:
@@ -398,7 +411,7 @@ rule methylartist_phased:
         bam="results/clair3/{patient}/{sampleid}/phased_output.bam",
         ann=config["ann"],
         ref="results/decompress_ref/ref.fa",
-        hl=config["highlights"],
+        hl="results/regulatory_noname/regions.bed",
     output:
         png="results/methylartist_phased/{patient}/{label}.{sampleid}.png"
     log:
