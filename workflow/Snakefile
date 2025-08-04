@@ -295,7 +295,7 @@ rule regulatory_noname:
         bed="results/regulatory_noname/regulatory_noname.bed"
     log:
         "logs/regulatory_noname/regulatory_noname.log"
-    shell:"""
+    shell: """
         cut -f1-3 {input.bed} > {output.bed} 2> {log}
     """
 
