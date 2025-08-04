@@ -31,6 +31,7 @@ def input_main(wc):
             o.append(f"results/mosdepth/{patient}/{sampleid}.mosdepth.global.dist.txt")
             o.append(f"results/modkit/pileup/{patient}/{sampleid}.bed")
             o.append(f"results/modkit/entropy/{patient}/{sampleid}/regions.bed")
+            o.append(f"results/modkit/calls/{patient}/{sampleid}.tsv")
             o.append(f"results/sniffles/{patient}/{sampleid}.vcf.gz")
             o.append(f"results/severus/{patient}/{sampleid}")
             o.append(f"results/smoothcov/{patient}/{sampleid}.csv")
@@ -330,6 +331,32 @@ rule modkit_entropy:
           --threads {threads} \
           --log-filepath {log} \
           --verbose-logging
+    """
+
+rule modkit_extract_calls:
+    input:
+        bam="results/primary/{patient}/{sampleid}.bam",
+        bai="results/primary/{patient}/{sampleid}.bam.bai",
+        ref="results/decompress_ref/ref.fa",
+        regulatory="results/regulatory_noname/regions.bed"
+    output:
+        tsv="results/modkit/calls/{patient}/{sampleid}.tsv",
+    log:
+        "logs/modkit/calls/{patient}/{sampleid}.log",
+    benchmark:
+        "logs/modkit/calls/{patient}/{sampleid}.bmk"
+    conda: "envs/modkit.yaml"
+    threads: get_resource("modkit_extract_calls", "threads"),
+    resources:
+        mem_mb=get_resource("modkit_extract_calls", "mem_mb"),
+        runtime=get_resource("modkit_extract_calls", "runtime"),
+        slurm_partition=get_resource("modkit_extract_calls", "partition"),
+    shell:"""
+        modkit extract calls {input.bam} {output.tsv} \
+          --reference {input.ref} \
+          --include-bed {input.regulatory} \
+          --threads {threads} \
+          --log-filepath {log}
     """
 
 rule decompress_ref:
