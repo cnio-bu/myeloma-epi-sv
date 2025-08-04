@@ -2,7 +2,7 @@
 ref: "/path/to/reference/genome.fa.gz"
 ann: "/path/to/annotation/gencode.v45.gtf.gz"
 regions: "/path/to/regions/targets.bed"
-highlights: "/path/to/highlights/promoters.bed"
+regulatory: "/path/to/highlights/promoters.bed"
 encode_blacklist: "/path/to/blacklist/encode_blacklist.bed.gz"
 severus_vntrs: "/path/to/vntrs/human_trf.bed"
 chrom_sizes: "/path/to/chrom_info/hg38.chrom.sizes"

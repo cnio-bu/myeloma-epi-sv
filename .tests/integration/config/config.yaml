@@ -2,7 +2,7 @@
 ref: "resources/ref.fasta.gz"
 ann: "resources/annotations.gtf.gz"
 regions: "resources/regions.bed"
-highlights: "resources/highlights.bed"
+regulatory: "resources/highlights.bed"
 encode_blacklist: "resources/encode_blacklist.bed"
 severus_vntrs: "resources/severus_vntrs.bed"
 chrom_sizes: "resources/hg38.chrom.sizes"
