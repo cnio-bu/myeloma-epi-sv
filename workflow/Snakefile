@@ -3,6 +3,11 @@ import os
 
 configfile: "config/config.yaml"
 
+wildcard_constraints:
+    patient="[^/]+",
+    sampleid="[^/]+"
+
+
 def get_resource(rule, resource):
     try:
         return config["resources"][rule][resource]
@@ -34,6 +39,7 @@ def input_main(wc):
             o.append(f"results/modkit/calls/{patient}/{sampleid}.tsv")
             o.append(f"results/sniffles/{patient}/{sampleid}.vcf.gz")
             o.append(f"results/severus/{patient}/{sampleid}")
+            o.append(f"results/wakhan/{patient}/{sampleid}")
             o.append(f"results/smoothcov/{patient}/{sampleid}.csv")
             o.append(f"results/smoothmods/{patient}/{sampleid}.csv")
             o.append(f"results/binsnvs/{patient}/{sampleid}.csv")
@@ -612,6 +618,70 @@ rule clairs:
             --include_all_ctgs \
             --output_dir $(dirname /{output}) \
             --conda_prefix /opt/conda/envs/clairs
+    """
+
+
+def get_vcf_normal_phased(wc):
+    """use the 'normal' sample for tumor-normal mode; if not available, 
+    use tumor-only mode"""
+
+    for sample in config["samples"][wc.patient]:
+        s = config["samples"][wc.patient][sample]
+        # check that there's a control sample for the patient, and that it's not
+        # the same sample as the target
+        if "normal" in s and s["normal"] and sample != wc.sampleid:
+            return f" --normal-phased-vcf results/clair3/{wc.patient}/{sample}/phased_merge_output.vcf.gz"
+    
+    return f" --tumor-vcf results/clair3/{wc.patient}/{wc.sampleid}/phased_merge_output.vcf.gz"
+
+
+def get_breakpoints(wc):
+    """use severus_somatic.vcf for tumor-normal mode; 
+    if not available, use severus_all.vcf"""
+
+    for sample in config["samples"][wc.patient]:
+        s = config["samples"][wc.patient][sample]
+        # check that there's a control sample for the patient, and that it's not
+        # the same sample as the target
+        if sample != wc.sampleid and "normal" in s and s["normal"]:
+            return f"--breakpoints results/severus/{wc.patient}/{wc.sampleid}/somatic_SVs/severus_somatic.vcf"
+
+    return f" --breakpoints results/severus/{wc.patient}/{wc.sampleid}/all_SVs/severus_all.vcf"  
+
+
+rule wakhan:
+    input:
+        bam_tumour="results/primary/{patient}/{sampleid}.bam",
+        ref="results/decompress_ref/ref.fa",
+        severus_dir="results/severus/{patient}/{sampleid}"
+    output:
+        directory("results/wakhan/{patient}/{sampleid}")
+    log:
+        "logs/wakhan/{patient}/{sampleid}.log"
+    benchmark:
+        "logs/wakhan/{patient}/{sampleid}.bmk"
+    threads: get_resource("wakhan", "threads")
+    resources:
+        mem_mb=get_resource("wakhan", "mem_mb"),
+        runtime=get_resource("wakhan", "runtime"),
+        slurm_partition=get_resource("wakhan", "partition")
+    params:
+        vcf_normal_phased=get_vcf_normal_phased,
+        cut_threshold=config["wakhan"]["cut_threshold"],
+        breakpoints=get_breakpoints,
+    conda:
+        "envs/wakhan.yaml"
+    shell:"""
+        wakhan \
+            --threads {threads} \
+            --reference {input.ref} \
+            --target-bam {input.bam_tumour} \
+            {params.vcf_normal_phased} \
+            --genome-name {wildcards.sampleid} \
+            --out-dir-plots {output} \
+            {params.breakpoints} \
+            --cut-threshold {params.cut_threshold} \
+            --pdf-enable
     """
 
 

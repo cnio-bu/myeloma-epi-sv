@@ -19,6 +19,7 @@ This is a Snakemake workflow for analyzing Oxford Nanopore Technologies (ONT) se
   - ClairS for somatic variant detection in tumor-normal pairs
   - Sniffles2 for germline structural variation detection
   - Severus for germline and somatic structural variation detection
+- **Copy Number Aberration Analysis**: Uses Wakhan for copy number estimation
 
 ## Requirements
 
@@ -82,6 +83,7 @@ snakemake --use-conda --profile slurm
    - Somatic variant detection with ClairS (for tumor-normal pairs)
    - Germline structural variant detection with Sniffles2
    - Germline/somatic structural variation detection with Severus
+8. **Copy Number Aberration Analysis**: Generate haplotype-specific coverage plots with Wakhan
 
 ## Output Structure
 
@@ -99,7 +101,8 @@ results/
 ├── clair3/                # Small variant calls
 ├── sniffles/              # Structural variant calls
 ├── severus/               # Tandem repeat expansions
-└── clairs/                # Somatic variants
+├── clairs/                # Somatic variants
+└── wakhan/                # Copy number aberrations
 ```
 
 ## Testing
