@@ -133,13 +133,13 @@ rule pycoqc:
 
 rule qsfilter:
     input:
-        "results/basecall_dorado/{sampleid}.bam",
+        "results/basecall_dorado/{patient}/{sampleid}.bam",
     output:
-        "results/qsfilter/{sampleid}.bam",
+        "results/qsfilter/{patient}/{sampleid}.bam",         
     log:
-        "logs/qsfilter/{sampleid}.log",
+        "logs/qsfilter/{patient}/{sampleid}.log",            
     benchmark:
-        "logs/qsfilter/{sampleid}.bmk"
+        "logs/qsfilter/{patient}/{sampleid}.bmk"             
     params:
         minq=config["minq"]
     threads: get_resource("qsfilter", "threads")
