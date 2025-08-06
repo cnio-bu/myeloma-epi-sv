@@ -17,6 +17,8 @@ minq: 9
 methylartist:
   enabled: True
   mods: ["m"]
+wakhan:
+    cut_threshold: 50
 smoothtools:
     bin: 1000000
     chunk: 500000
@@ -29,6 +31,7 @@ samples:
     sample1_tumor:
       pod5: "resources/reads.pod5"
       colour: "#D40000"
+      normal: False
 
 # Resource specifications for different steps
 resources:
@@ -51,6 +54,11 @@ resources:
     runtime: 420
     mem_mb: 64000
     threads: 24
+  wakhan:
+    partition: main
+    threads: 52
+    mem_mb: 512000
+    runtime: 240
   smoothcov:
     partition: short
     threads: 8
