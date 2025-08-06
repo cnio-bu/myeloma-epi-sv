@@ -1,7 +1,12 @@
 import pandas as pd
 import os
 import gzip
+import sys
 from natsort import natsorted
+
+# Redirect output to Snakemake logs
+sys.stderr = open(snakemake.log[0], "a+")
+sys.stdout = open(snakemake.log[0], "a+")
 
 def open_vcf_file(vcf_file):
     """Open VCF file, handling both compressed (.gz) and uncompressed files"""
