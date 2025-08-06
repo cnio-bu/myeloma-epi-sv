@@ -82,13 +82,13 @@ rule basecall_dorado:
 
 rule summary_dorado:
     input:
-        "results/basecall_dorado/{sampleid}.bam",
+        "results/basecall_dorado/{patient}/{sampleid}.bam",
     output:
-        "results/summary_dorado/{sampleid}.txt",
+        "results/summary_dorado/{patient}/{sampleid}.txt",
     log:
-        "logs/summary_dorado/{sampleid}.log",
+        "logs/summary_dorado/{patient}/{sampleid}.log",
     benchmark:
-        "logs/summary_dorado/{sampleid}.bmk"
+        "logs/summary_dorado/{patient}/{sampleid}.bmk"
     params:
         bin=config["dorado_bin"],
     threads: get_resource("summary_dorado", "threads")
@@ -105,13 +105,13 @@ rule summary_dorado:
 
 rule pycoqc:
     input:
-        "results/summary_dorado/{sampleid}.txt",
+        "results/summary_dorado/{patient}/{sampleid}.txt",
     output:
-        "results/pycoqc/{sampleid}.html",
+        "results/pycoqc/{patient}/{sampleid}.html",
     log:
-        "logs/pycoqc/{sampleid}.log",
+        "logs/pycoqc/{patient}/{sampleid}.log",
     benchmark:
-        "logs/pycoqc/{sampleid}.bmk"
+        "logs/pycoqc/{patient}/{sampleid}.bmk"
     threads: get_resource("pycoqc", "threads")
     conda:
         "envs/pycoqc.yaml"
@@ -127,13 +127,13 @@ rule pycoqc:
 
 rule qsfilter:
     input:
-        "results/basecall_dorado/{sampleid}.bam",
+        "results/basecall_dorado/{patient}/{sampleid}.bam",
     output:
-        "results/qsfilter/{sampleid}.bam",
+        "results/qsfilter/{patient}/{sampleid}.bam",
     log:
-        "logs/qsfilter/{sampleid}.log",
+        "logs/qsfilter/{patient}/{sampleid}.log",
     benchmark:
-        "logs/qsfilter/{sampleid}.bmk"
+        "logs/qsfilter/{patient}/{sampleid}.bmk"
     params:
         minq=config["minq"]
     threads: get_resource("qsfilter", "threads")
