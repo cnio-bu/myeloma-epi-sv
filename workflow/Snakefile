@@ -122,7 +122,7 @@ rule pycoqc:
         slurm_extra=get_resource("pycoqc", "slurm_extra"),
     shell:
         """
-       pycoQC -f {input} -o {output} 2>&1 > {log}
+       pycoQC -f {input} -o {output} > {log} 2>&1
     """
 
 rule qsfilter:
@@ -168,8 +168,8 @@ rule minimap2:
         "envs/minimap2.yaml"
     shell:
         """
-        samtools fastq -T "*" {input.reads} | minimap2 -a -x map-ont -y -t {threads} {input.ref} - | samtools sort - -o {output} 2> {log}
-        samtools index {output}
+        samtools fastq -T "*" {input.reads} 2>> {log} | minimap2 -a -x map-ont -y -t {threads} {input.ref} - 2>> {log} | samtools sort - -o {output} >> {log} 2>&1
+        samtools index {output} >> {log} 2>&1
     """
 
 rule primary:
@@ -274,7 +274,8 @@ rule modkit_pileup:
     output:
         bed="results/modkit/pileup/{patient}/{sampleid}.bed",
     log:
-        "logs/modkit/pileup/{patient}/{sampleid}.log",
+        o="logs/modkit/pileup/{patient}/{sampleid}.log",
+        d="logs/modkit/pileup/{patient}/{sampleid}.dbg",
     benchmark:
         "logs/modkit/pileup/{patient}/{sampleid}.bmk"
     conda: "envs/modkit.yaml"
@@ -286,7 +287,7 @@ rule modkit_pileup:
     shell:"""
         modkit pileup {input.bam} {output.bed} \
           --threads {threads} \
-          --log-filepath {log}
+          --log-filepath {log.d} > {log.o} 2>&1
     """
 
 rule regulatory_noname:
@@ -310,7 +311,8 @@ rule modkit_entropy:
         regions="results/modkit/entropy/{patient}/{sampleid}/regions.bed",
         windows="results/modkit/entropy/{patient}/{sampleid}/windows.bedgraph",
     log:
-        "logs/modkit/entropy/{patient}/{sampleid}.log",
+        o="logs/modkit/entropy/{patient}/{sampleid}.log",
+        d="logs/modkit/entropy/{patient}/{sampleid}.dbg",
     benchmark:
         "logs/modkit/entropy/{patient}/{sampleid}.bmk"
     conda: "envs/modkit.yaml"
@@ -329,8 +331,8 @@ rule modkit_entropy:
           --cpg \
           --window-size 100 \
           --threads {threads} \
-          --log-filepath {log} \
-          --verbose-logging
+          --log-filepath {log.d} \
+          --verbose-logging > {log.o} 2>&1
     """
 
 rule modkit_extract_calls:
@@ -342,7 +344,8 @@ rule modkit_extract_calls:
     output:
         tsv="results/modkit/calls/{patient}/{sampleid}.tsv",
     log:
-        "logs/modkit/calls/{patient}/{sampleid}.log",
+        o="logs/modkit/calls/{patient}/{sampleid}.log",
+        d="logs/modkit/calls/{patient}/{sampleid}.dbg",
     benchmark:
         "logs/modkit/calls/{patient}/{sampleid}.bmk"
     conda: "envs/modkit.yaml"
@@ -356,7 +359,7 @@ rule modkit_extract_calls:
           --reference {input.ref} \
           --include-bed {input.regulatory} \
           --threads {threads} \
-          --log-filepath {log}
+          --log-filepath {log.d} > {log.o} 2>&1
     """
 
 rule decompress_ref:
@@ -611,7 +614,7 @@ rule clairs:
             --clair3_model_path /models/clair3_models/r1041_e82_400bps_sup_v420 \
             --include_all_ctgs \
             --output_dir $(dirname /{output}) \
-            --conda_prefix /opt/conda/envs/clairs
+            --conda_prefix /opt/conda/envs/clairs > {log} 2>&1
     """
 
 
