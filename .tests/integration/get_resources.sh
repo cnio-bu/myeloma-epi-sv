@@ -24,6 +24,9 @@ wget -P $PATH_RESOURCES \
 # create the empty ENCODE blacklist file
 touch $PATH_RESOURCES/encode_blacklist.bed
 
+# create regulatory_regions.bed from highlights.bed, replacing hex colour with proper label
+sed 's/#00FF00/test_region_1/' $PATH_RESOURCES/highlights.bed > $PATH_RESOURCES/regulatory_regions.bed
+
 # If we skip basecalling, copy the sample basecalled file to the results directory
 # and fake the QC rule output to prevent dorado usage
 if [[ "${SKIP_BASECALLING}" != "true" ]]; then
