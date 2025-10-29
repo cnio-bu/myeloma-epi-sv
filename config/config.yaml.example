@@ -13,6 +13,7 @@ clair3_model: "/path/to/clair3/r1041_e82_400bps_sup_v420"
 
 # Analysis parameters
 minq: 9
+regulatory_region_padding: 5000
 methylartist:
   enabled: True
   mods: ["m", "h"]

@@ -14,6 +14,7 @@ clair3_model: "resources/clair3_model"
 
 # Analysis parameters
 minq: 9
+regulatory_region_padding: 5000
 methylartist:
   enabled: True
   mods: ["m"]

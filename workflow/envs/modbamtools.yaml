@@ -1,0 +1,6 @@
+channels:
+  - bu_cnio
+  - conda-forge
+  - bioconda
+dependencies:
+  - modbamtools>=0.5.0

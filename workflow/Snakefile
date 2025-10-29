@@ -16,6 +16,21 @@ with open(config["regions"]) as ifh:
         data = l.rstrip("\n").split()
         regions[data[3]] = dict(zip(fields,data))
 
+regulatory = {}
+with open(config["regulatory"]) as ifh:
+    fields = ["chrom","start","end","label","score","strand"]
+    for l in ifh:
+        data = l.rstrip("\n").split()
+        regulatory[data[3]] = dict(zip(fields,data))
+
+def get_regulatory_region(wc):
+    region = regulatory[wc.label]
+    chrom = region['chrom']
+    padding = config["regulatory_region_padding"]
+    start = int(region['start']) - padding
+    end = int(region['end']) + padding
+    return f"{chrom}:{start}-{end}"
+
 def input_main(wc):
     o = []
     for patient in config["samples"]:
@@ -47,6 +62,11 @@ def input_main(wc):
                     o.append(f"results/methylartist/{patient}/{label}.{modtype}.png")
                 for sampleid in config["samples"][patient]:
                     o.append(f"results/methylartist_phased/{patient}/{label}.{sampleid}.png")
+    # modbamtools clustering for all samples and regulatory regions
+    for patient in config["samples"]:
+        for sampleid in config["samples"][patient]:
+            for label in regulatory:
+                o.append(f"results/modbamtools/cluster/{patient}/{sampleid}/{label}.html")
     return o
 
 
@@ -360,6 +380,38 @@ rule modkit_extract_calls:
           --include-bed {input.regulatory} \
           --threads {threads} \
           --log-filepath {log.d} > {log.o} 2>&1
+    """
+
+rule modbamtools_cluster:
+    input:
+        bam="results/primary/{patient}/{sampleid}.bam",
+        bai="results/primary/{patient}/{sampleid}.bam.bai",
+        gtf=config["ann"],
+    output:
+        html="results/modbamtools/cluster/{patient}/{sampleid}/{label}.html",
+    log:
+        "logs/modbamtools/cluster/{patient}/{sampleid}/{label}.log",
+    benchmark:
+        "logs/modbamtools/cluster/{patient}/{sampleid}/{label}.bmk"
+    conda:
+        "envs/modbamtools.yaml"
+    threads: get_resource("modbamtools_cluster", "threads"),
+    resources:
+        mem_mb=get_resource("modbamtools_cluster", "mem_mb"),
+        runtime=get_resource("modbamtools_cluster", "runtime"),
+        slurm_partition=get_resource("modbamtools_cluster", "partition"),
+    params:
+        region=get_regulatory_region,
+        outdir=lambda wc, output: os.path.dirname(output.html),
+    shell:"""
+        modbamtools plot \
+            -r {params.region} \
+            --gtf {input.gtf} \
+            --out {params.outdir} \
+            --cluster \
+            --prefix '{wildcards.label}' \
+            --track-titles Genes \
+            {input.bam} > {log} 2>&1
     """
 
 rule decompress_ref:
