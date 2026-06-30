@@ -67,6 +67,29 @@ For cluster environments using Slurm:
 snakemake --use-conda --profile slurm
 ```
 
+### Container-based rules (ClairS)
+
+Some rules run inside containers rather than Conda environments. In particular,
+the `clairs` rule runs in the `hkubal/clairs` Docker/Apptainer image and refers
+to its inputs and outputs as absolute paths inside the container (e.g.
+`/results/...`, `/models/...`, `/logs/...`). For those paths to resolve, the
+corresponding host directories must be bind-mounted into the container at those
+locations.
+
+Pass the binds through `--apptainer-args` (use `--singularity-args` if you run
+Singularity instead of Apptainer):
+
+```bash
+snakemake \
+    --sdm conda apptainer \
+    --apptainer-args "-B /path/on/host/results/:/results/,/path/on/host/clairs_models/:/models/,/path/on/host/logs/:/logs/" \
+    --executor slurm
+```
+
+Replace the `/path/on/host/...` entries with the actual locations of your
+`results/`, ClairS model, and `logs/` directories. The format of each bind is
+`<host_path>:<container_path>`.
+
 ## Pipeline Steps
 
 1. **Basecalling**: Convert raw POD5 files to BAM format with Dorado, including modified base detection
